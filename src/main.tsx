@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { WagmiConfig, createConfig, configureChains, } from 'wagmi'
+import { WagmiConfig, createConfig, configureChains } from 'wagmi'
 import {
   RainbowKitProvider,
   lightTheme,
