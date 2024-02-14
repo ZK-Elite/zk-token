@@ -269,7 +269,7 @@ export function Send(props: any) {
               disabled={!isConnected || isLoading}
               spellCheck="false"
               autoComplete="off"
-              placeholder="Enter receiver Zkml ID"
+              placeholder="Enter Receiver ZKML ID"
               onChange={handleIDInput}
             />
           </div>
