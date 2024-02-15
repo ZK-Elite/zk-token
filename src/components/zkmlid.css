@@ -100,7 +100,9 @@
 .zkml_button:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;
 }
-
+.zkml-id-warn-tooltip {
+    font-family: 'Questrial';
+}
 
 @media only screen and (max-width: 424px) {
     .zkmlid {
