@@ -14,6 +14,8 @@ import './zkmlid.css';
 import ZkmlIdBg from '../assets/svg/ZkmlidBg.svg';
 import ZkmlHeader from '../assets/svg/ZkmlHeader.svg';
 import EllipseEffect from '../assets/svg/Ellipse.svg';
+import { Tooltip } from '@chakra-ui/react';
+
 const Zkmlid = () => {
     const ec = new EC('secp256k1');
 
@@ -54,7 +56,7 @@ const Zkmlid = () => {
         if (!skey) {
             generateNewKey();
         }
-        
+
     }, [storedSpendingKey]);
 
     useEffect(() => {
@@ -141,15 +143,18 @@ const Zkmlid = () => {
                                         COPY <FontAwesomeIcon icon={copied ? faCheckCircle : faCopy} />
                                     </span>
                                 </button>
-                                <button
-                                    className="zkml-button hbutton-lnk"
-                                    title="Generate new"
-                                    onClick={generateNewKey}
-                                >
-                                    <span>
-                                        Generate New <FontAwesomeIcon icon={faRotate} />
-                                    </span>
-                                </button>
+                                <Tooltip className='zkml-id-warn-tooltip' placement='right-end' hasArrow label='If you generate without saving the key, there is a risk of funds being locked in the pool.' bg='red.600'>
+                                    <button
+                                        className="zkml-button hbutton-lnk"
+                                        title="Generate new"
+                                        onClick={generateNewKey}
+                                    >
+                                        <span>
+                                            Generate New <FontAwesomeIcon icon={faRotate} />
+                                        </span>
+                                    </button>
+                                </Tooltip>
+
                             </div>
                         </div>
                         <div className='zkmlid-body-control'>
