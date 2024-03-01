@@ -1,13 +1,16 @@
-import React from 'react';
-import { faUpload } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React from "react";
 
-
-export const FileUploader = ({ preLoad, handleFile }: { preLoad: () => void, handleFile: (f: File) => void }) => {
+export const FileUploader = ({
+  preLoad,
+  handleFile,
+}: {
+  preLoad: () => void;
+  handleFile: (f: File) => void;
+}) => {
   const hiddenFileInput = React.useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
-    preLoad()
+    preLoad();
     hiddenFileInput.current?.click();
   };
 
@@ -18,17 +21,19 @@ export const FileUploader = ({ preLoad, handleFile }: { preLoad: () => void, han
 
   return (
     <>
-      <button className="zkml-button hbutton-lnk" onClick={handleClick}>
-        <span>
-          Load key <FontAwesomeIcon icon={faUpload} /> 
-        </span>
+      <button
+        onClick={handleClick}
+        className="flex w-1/2 items-center justify-center gap-2 rounded-full bg-[#253038] py-2 font-[Nregular] text-[#CAECF1] hover:bg-[#38e4ff8e] max-md:w-full"
+      >
+        Load Key
+        <img src="/load.png" alt="logo" className="w-[18px] h-[18px]" />
       </button>
       <input
         type="file"
         ref={hiddenFileInput}
         onChange={handleChange}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
     </>
   );
-}
+};

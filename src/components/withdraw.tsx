@@ -1,58 +1,56 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
-import { useToast } from '@chakra-ui/react';
-import { StaticJsonRpcProvider } from '@ethersproject/providers';
+import { useContext, useEffect, useMemo, useState } from "react";
+import { useToast } from "@chakra-ui/react";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import {
   faArrowRight,
   faArrowTurnDown,
   faCheckCircle,
-  faCopy
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+  faCopy,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   fetchBalance,
   prepareSendTransaction,
   fetchFeeData,
-  waitForTransaction
-} from '@wagmi/core';
-import { ec as EC } from 'elliptic';
-import { ethers } from 'ethers';
-import { parseEther } from 'viem'
-import { getAddress, keccak256 } from 'ethers/lib/utils';
-import { useAccount, useContractRead, useNetwork, } from 'wagmi';
-import { supabase } from '../utils/constants';
+  waitForTransaction,
+} from "@wagmi/core";
+import { ec as EC } from "elliptic";
+import { ethers } from "ethers";
+import { parseEther } from "viem";
+import { getAddress, keccak256 } from "ethers/lib/utils";
+import { useAccount, useContractRead, useNetwork } from "wagmi";
+import { supabase } from "../utils/constants";
 
-import { ZkmlPayABI } from '../contracts/abi.json';
-import { copyTextToClipboard } from '../utils/clipboard';
-import { registryAddress, explorer } from '../utils/constants';
-import { AddressContext, AddressContextType } from './address';
+import { ZkmlPayABI } from "../contracts/abi.json";
+import { copyTextToClipboard } from "../utils/clipboard";
+import { registryAddress, explorer } from "../utils/constants";
+import { AddressContext, AddressContextType } from "./address";
 
-import NothingHere from '../assets/svg/NothingHere.svg';
-import './panes.css';
+import NothingHere from "../assets/svg/NothingHere.svg";
+import "./panes.css";
 
-
-export function Withdraw(props:any) {
-
+export function Withdraw(props: any) {
   const ec = useMemo(() => {
-    return new EC('secp256k1');
+    return new EC("secp256k1");
   }, []);
 
-  const { verxioPrivateKey }                  = useContext(AddressContext) as AddressContextType;
-  const { spendingKey }                       = useContext(AddressContext) as AddressContextType;
-  const [keyAddrs, setKeyAddrs]               = useState<Array<string[]>>([]);
-  const [modalVisible, setModalVisible]       = useState<boolean>(false);
-  const [active, setActive]                   = useState<any>({});
-  const [targetAddr, setTargetAddr]           = useState<string>('');
-  const [isSending, setIsSending]             = useState<boolean>(false);
-  const [isAddressValid, setIsAddressValid]   = useState<boolean>(true);
-  const [isCopied, setIsCopied]               = useState<boolean>(false);
+  const { verxioPrivateKey } = useContext(AddressContext) as AddressContextType;
+  const { spendingKey } = useContext(AddressContext) as AddressContextType;
+  const [keyAddrs, setKeyAddrs] = useState<Array<string[]>>([]);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [active, setActive] = useState<any>({});
+  const [targetAddr, setTargetAddr] = useState<string>("");
+  const [isSending, setIsSending] = useState<boolean>(false);
+  const [isAddressValid, setIsAddressValid] = useState<boolean>(true);
+  const [isCopied, setIsCopied] = useState<boolean>(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string>();
-  const [withdrawError, setWithdrawError]     = useState<string>();
-  const [txPending, setTxPending]             = useState<string>('');
-  const [keysCount, setKeysCount]             = useState<number>(0);
-  const [keysIndex, setKeysIndex]             = useState<number>(0);
+  const [withdrawError, setWithdrawError] = useState<string>();
+  const [txPending, setTxPending] = useState<string>("");
+  const [keysCount, setKeysCount] = useState<number>(0);
+  const [keysIndex, setKeysIndex] = useState<number>(0);
 
-  const toast                    = useToast();
-  const { chain }                = useNetwork();
+  const toast = useToast();
+  const { chain } = useNetwork();
   const { isConnected, address } = useAccount();
 
   const { setIsLoading, activeTab } = props;
@@ -69,45 +67,40 @@ export function Withdraw(props:any) {
 
   const { refetch: refetchKeys } = useContractRead({
     ...registryConfig,
-    functionName: 'getNextKeys',
+    functionName: "getNextKeys",
     args: [keysIndex] as const,
     enabled: isConnected,
   });
 
   const { data: _keysCount, refetch: refetchKeysCount } = useContractRead({
     ...registryConfig,
-    functionName: 'totalKeys',
+    functionName: "totalKeys",
     enabled: isConnected,
   });
 
-  const saveData =  async (address: any) => {
-    const date = new Date(); 
+  const saveData = async (address: any) => {
+    const date = new Date();
     const isoDateString = date.toISOString();
 
-    await supabase
-      .from('zkml')
-      .upsert([
-        { 
-          zkmlid: verxioPrivateKey, 
-          type: 'receive',
-          address: address,
-          amount:  active?.balance,
-          createtime: isoDateString,
-          cryptotype: chain?.nativeCurrency.symbol,
-          explorerAddress: explorerAddress
-        },
-      ])
-  }
-
+    await supabase.from("zkml").upsert([
+      {
+        zkmlid: verxioPrivateKey,
+        type: "receive",
+        address: address,
+        amount: active?.balance,
+        createtime: isoDateString,
+        cryptotype: chain?.nativeCurrency.symbol,
+        explorerAddress: explorerAddress,
+      },
+    ]);
+  };
 
   useEffect(() => {
     if (!isConnected || !!!_keysCount) return;
 
     setKeysCount(Number(_keysCount) || 0);
     const handler = setInterval(() => {
-      refetchKeysCount().then((x) =>
-        setKeysCount(Number(x.data))
-      );
+      refetchKeysCount().then((x) => setKeysCount(Number(x.data)));
     }, 10000);
 
     return () => {
@@ -133,12 +126,12 @@ export function Withdraw(props:any) {
   }, [keysCount, refetchKeys, isConnected, spendingKey, keysIndex, activeTab]);
 
   useEffect(() => {
-    setTargetAddr('');
+    setTargetAddr("");
     setIsSending(false);
     setIsAddressValid(true);
     setWithdrawError(undefined);
     setWithdrawSuccess(undefined);
-    setTxPending('');
+    setTxPending("");
   }, [modalVisible]);
 
   useEffect(() => {
@@ -161,9 +154,7 @@ export function Withdraw(props:any) {
     if (!spendingKey || !isConnected) return;
 
     const _addrs = await Promise.all(
-
       keys.map(async (key) => {
-
         const { x, y, ss, token } = key;
         const _x = parseInt(x, 16);
         const _y = parseInt(y, 16);
@@ -171,14 +162,13 @@ export function Withdraw(props:any) {
 
         let eph;
         try {
-          eph = ec.keyFromPublic(`04${x.slice(2)}${y.slice(2)}`, 'hex');
+          eph = ec.keyFromPublic(`04${x.slice(2)}${y.slice(2)}`, "hex");
         } catch (e) {
-          console.error("Error", e)
+          console.error("Error", e);
           return null;
         }
 
         const _ss = spendingKey.derive(eph.getPublic());
-
 
         // early check if shared secret might be the same
         if (_ss.toArray()[0] == parseInt(ss, 16)) return null;
@@ -188,17 +178,17 @@ export function Withdraw(props:any) {
         const pub = spendingKey
           .getPublic()
           .add(hashed.getPublic())
-          .encode('array', false);
+          .encode("array", false);
 
         const _addr = keccak256(pub.splice(1));
         const addr = getAddress(
-          '0x' + _addr.substring(_addr.length - 40, _addr.length)
+          "0x" + _addr.substring(_addr.length - 40, _addr.length)
         );
 
         if (token === ethers.constants.AddressZero) {
           const bal = await fetchBalance({ address: `0x${addr.substring(2)}` });
 
-          if (bal.formatted != '0') {
+          if (bal.formatted != "0") {
             return [x, y, token, bal.formatted, addr];
           }
         } else {
@@ -214,11 +204,10 @@ export function Withdraw(props:any) {
     setKeyAddrs([...keyAddrs, ...(addrs as Array<string[]>)]);
 
     // console.log(addrs)
-
   };
 
   const buildPrivateKey = (x: string, y: string, spendingKey: EC.KeyPair) => {
-    const eph = ec.keyFromPublic(`04${x.slice(2)}${y.slice(2)}`, 'hex');
+    const eph = ec.keyFromPublic(`04${x.slice(2)}${y.slice(2)}`, "hex");
 
     const ss = spendingKey.derive(eph.getPublic());
     const hashed = ec.keyFromPrivate(keccak256(ss.toArray()));
@@ -236,7 +225,6 @@ export function Withdraw(props:any) {
     addr: `0x${string}`,
     target: `0x${string}`
   ) => {
-    
     if (!spendingKey) return;
     let receiveaddress;
     setIsSending(true);
@@ -254,18 +242,17 @@ export function Withdraw(props:any) {
       const signer = new ethers.Wallet(key.toArray(undefined, 32), provider);
 
       let gasLimit = request.gas!;
-      const feeData = await fetchFeeData()
-      const gasPrice = feeData.gasPrice!
+      const feeData = await fetchFeeData();
+      const gasPrice = feeData.gasPrice!;
 
       let fee = gasLimit * gasPrice;
       const originalBalance = parseEther(bal.formatted);
 
-
-      const sendValue = originalBalance - fee
+      const sendValue = originalBalance - fee;
       const result = await signer.sendTransaction({
         to: target,
         value: sendValue,
-        gasPrice: gasPrice
+        gasPrice: gasPrice,
       });
 
       setTxPending(result.hash);
@@ -273,45 +260,45 @@ export function Withdraw(props:any) {
         hash: result.hash as `0x${string}`,
       });
 
-      setTxPending('');
+      setTxPending("");
       setWithdrawSuccess(data.transactionHash);
       receiveaddress = data.transactionHash;
       // exclude address from the list
       setKeyAddrs(keyAddrs.filter((p) => p[4] !== addr));
     } catch (e) {
       setWithdrawError((e as Error).message);
-      setTxPending('');
+      setTxPending("");
     }
     saveData(receiveaddress);
     setIsSending(false);
   };
 
   useEffect(() => {
-      setIsLoading(isSending);
+    setIsLoading(isSending);
   }, [isSending]);
 
   useEffect(() => {
-    if(withdrawError){
+    if (withdrawError) {
       toast({
-        title: 'Transaction Warning',
-        description: withdrawError.slice(0, 40) + '...',
-        status: 'warning', // success, error, warning, info
+        title: "Transaction Warning",
+        description: withdrawError.slice(0, 40) + "...",
+        status: "warning", // success, error, warning, info
         duration: 5000, // Duration in milliseconds
         isClosable: true, // Whether the toast is closable by user
-        position: "top-right"
-      });
-    };
-    if (withdrawSuccess) {
-      toast({
-        title: 'Transaction Success',
-        description: 'Celbrate! You have successfully withdrawn your funds.',
-        status: 'success', // success, error, warning, info
-        duration: 5000, // Duration in milliseconds
-        isClosable: true, // Whether the toast is closable by user
-        position: "top-right"
+        position: "top-right",
       });
     }
-  }, [withdrawError, withdrawSuccess])
+    if (withdrawSuccess) {
+      toast({
+        title: "Transaction Success",
+        description: "Celbrate! You have successfully withdrawn your funds.",
+        status: "success", // success, error, warning, info
+        duration: 5000, // Duration in milliseconds
+        isClosable: true, // Whether the toast is closable by user
+        position: "top-right",
+      });
+    }
+  }, [withdrawError, withdrawSuccess]);
   if (!isConnected) {
     return (
       <div className="lane">
@@ -322,7 +309,7 @@ export function Withdraw(props:any) {
             }}
           >
             Connect wallet
-          </b>{' '}
+          </b>{" "}
           to proceed.
         </p>
       </div>
@@ -331,17 +318,17 @@ export function Withdraw(props:any) {
     return (
       <div>
         {keyAddrs.length === 0 && !modalVisible && (
-          <div className="lane" style={{ marginTop: '1rem' }}>
-            <div className='nothing-here'>
+          <div className="lane" style={{ marginTop: "1rem" }}>
+            <div className="nothing-here">
               <img src={NothingHere}></img>
             </div>
-            <p style={{color: 'white'}}>Nothing to withdraw yet</p>
+            <p style={{ color: "white" }}>Nothing to withdraw yet</p>
           </div>
         )}
 
-        {keyAddrs.length > 0 && !modalVisible && (
-          <div className="lane" style={{ marginTop: '1rem' }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}>
+        {keyAddrs.length < 0 && !modalVisible && (
+          <div className="lane" style={{ marginTop: "1rem" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", width: "100%" }}>
               {keyAddrs
                 // .filter((item) => Number(item[3]) > 0) // Filter out items with balance <= 0
                 .map((item, index) => {
@@ -350,8 +337,8 @@ export function Withdraw(props:any) {
                     <div
                       key={index}
                       style={{
-                        minHeight: '1.8rem',
-                        margin: '0 1rem 0.75rem 0',
+                        minHeight: "1.8rem",
+                        margin: "0 1rem 0.75rem 0",
                       }}
                     >
                       <button
@@ -378,12 +365,11 @@ export function Withdraw(props:any) {
           </div>
         )}
 
-        <div className={modalVisible ? 'modal active' : 'modal'}>
-          <div className="lane" style={{ marginTop: '1rem' }}>
+        <div className={modalVisible ? "modal active" : "modal"}>
+          <div className="lane" style={{ marginTop: "1rem" }}>
             <div className="modal-window">
-              <p className='receive-txt'>
-                Withdraw {active.balance || '0'}{' '}
-                {chain?.nativeCurrency.symbol}
+              <p className="receive-txt">
+                Withdraw {active.balance || "0"} {chain?.nativeCurrency.symbol}
               </p>
 
               <button
@@ -397,7 +383,7 @@ export function Withdraw(props:any) {
               </button>
             </div>
           </div>
-          <div className="lane withdraw" style={{ marginTop: '1rem' }}>
+          <div className="lane withdraw" style={{ marginTop: "1rem" }}>
             <form
               onSubmit={() => {
                 return false;
@@ -409,7 +395,7 @@ export function Withdraw(props:any) {
                   type="text"
                   id="targetAddr"
                   value={targetAddr}
-                  className={!isAddressValid ? 'error-input' : ''}
+                  className={!isAddressValid ? "error-input" : ""}
                   spellCheck="false"
                   autoComplete="off"
                   placeholder="0x943sI865PYt2W..."
@@ -420,13 +406,16 @@ export function Withdraw(props:any) {
                   }}
                 />
               </div>
-              <div className="lane" style={{ marginTop: '1rem', padding: '0px 10px' }}>
+              <div
+                className="lane"
+                style={{ marginTop: "1rem", padding: "0px 10px" }}
+              >
                 <button
                   className="hbutton hbutton-lnk"
                   disabled={isSending}
                   onClick={(e) => {
                     e.preventDefault();
-                    setTargetAddr(address || '');
+                    setTargetAddr(address || "");
                   }}
                 >
                   use connected wallet
@@ -440,7 +429,7 @@ export function Withdraw(props:any) {
               <button
                 className="withdraw_button hbutton-lnk"
                 disabled={isSending || !targetAddr || !isAddressValid}
-                onClick={() => 
+                onClick={() =>
                   withdraw(
                     active.x,
                     active.y,
@@ -452,17 +441,13 @@ export function Withdraw(props:any) {
                 <span>
                   <FontAwesomeIcon icon={faArrowTurnDown} flip="horizontal" />
                   &nbsp;
-                  {isSending ? 'Sending...' : 'Withdraw'}
+                  {isSending ? "Sending..." : "Withdraw"}
                 </span>
               </button>
               <button
                 className="withdraw_button hbutton-lnk"
                 onClick={() => {
-                  const key = buildPrivateKey(
-                    active.x,
-                    active.y,
-                    spendingKey
-                  );
+                  const key = buildPrivateKey(active.x, active.y, spendingKey);
                   copyTextToClipboard(key.toString(16, 32));
                   setIsCopied(true);
                   setTimeout(() => {
@@ -471,25 +456,25 @@ export function Withdraw(props:any) {
                 }}
               >
                 <span>
-                  <FontAwesomeIcon icon={isCopied ? faCheckCircle : faCopy} />{' '}
+                  <FontAwesomeIcon icon={isCopied ? faCheckCircle : faCopy} />{" "}
                   &nbsp;
-                  {isCopied ? 'Copied!' : 'Copy private key'}
+                  {isCopied ? "Copied!" : "Copy private key"}
                 </span>
               </button>
             </div>
           )}
           {(!!withdrawError || !!withdrawSuccess || !!txPending) && (
             <div className="lane">
-              {txPending !== '' && (
+              {txPending !== "" && (
                 <p className="message">
-                  <span style={{color: 'yellow'}}>Transaction pending. </span>
+                  <span style={{ color: "yellow" }}>Transaction pending. </span>
                   <a
                     href={`https://${explorerAddress}/tx/${txPending}`}
                     target="_blank"
                     rel="noreferrer"
                     className="link-text"
                   >
-                    View on {chain?.name.split(' ')[0]} Explorer{' '}
+                    View on {chain?.name.split(" ")[0]} Explorer{" "}
                     <FontAwesomeIcon
                       icon={faArrowRight}
                       transform={{ rotate: -45 }}
@@ -509,7 +494,7 @@ export function Withdraw(props:any) {
                     rel="noreferrer"
                     className="link-text"
                   >
-                    View on {chain?.name.split(' ')[0]} Explorer{' '}
+                    View on {chain?.name.split(" ")[0]} Explorer{" "}
                     <FontAwesomeIcon
                       icon={faArrowRight}
                       transform={{ rotate: -45 }}
@@ -520,7 +505,6 @@ export function Withdraw(props:any) {
             </div>
           )}
         </div>
-
       </div>
     );
   }

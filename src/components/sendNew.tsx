@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@chakra-ui/react";
 import { curve, ec as EC } from "elliptic";
@@ -17,7 +16,7 @@ import { ZkmlPayABI } from "../contracts/abi.json";
 import { registryAddress, explorer } from "../utils/constants";
 import { calculateCrc } from "../utils/crc16";
 import useDebounce from "../utils/debounce";
-import { Connect } from "./connect";
+// import { Connect } from "./connect";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { supabase } from "../utils/constants";
@@ -26,7 +25,8 @@ import "./panes.css";
 
 const zero = BigNumber.from(0);
 
-export function Send(props: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function SendNew(props: any) {
   const ec = useMemo(() => {
     return new EC("secp256k1");
   }, []);
@@ -243,72 +243,73 @@ export function Send(props: any) {
   }, [amount, balance]);
 
   return (
-    <div style={{ paddingTop: "1rem" }}>
-      <p className="send-txt-content">
+    <div className="flex flex-col gap-y-6">
+      <div className="font-[Sregular] text-[22px] leading-8 text-white max-md:text-[18px]">
         {chain?.nativeCurrency.symbol || "Crypto"} will be sent to a secret
         blockchain account that will hold the{" "}
         {chain?.nativeCurrency.symbol || "crypto"} temporarily. The user who
         owns the ZKML ID will have control over the secret account.
-      </p>
+      </div>
       <form
-        className="lane"
         onSubmit={() => {
           return false;
         }}
       >
-        <div className="header-item">
-          <div className="input-container">
-            <label htmlFor="xcryptID">ZKML ID</label>
-            <input
-              type="text"
-              id="xcryptID"
-              value={theirID}
-              disabled={!isConnected || isLoading}
-              spellCheck="false"
-              autoComplete="off"
-              placeholder="Enter Receiver ZKML ID"
-              onChange={handleIDInput}
-            />
-          </div>
+        <div className="flex w-full gap-3 rounded-full bg-[#202227] px-[6px] py-2 md:p-2 md:px-3">
+          <label
+            htmlFor="xcryptID"
+            className="flex w-[45%] items-center justify-center rounded-full bg-black px-0 py-2 font-[Sregular] text-white max-md:text-sm md:w-[10%] md:px-4 md:py-[6px]"
+          >
+            ZKML ID
+          </label>
+          <input
+            type="text"
+            id="xcryptID"
+            value={theirID}
+            disabled={!isConnected || isLoading}
+            spellCheck="false"
+            autoComplete="off"
+            className="focus:cursor w-full bg-transparent font-[Sregular] text-white focus:outline-none"
+            placeholder="Enter receiver ZKML ID "
+            onChange={handleIDInput}
+          />
         </div>
       </form>
-
-      {!isConnected && (
-        <>
-          <div className="connected_send">
-            <Connect />
-          </div>
-        </>
-      )}
-
       {isConnected && balance && (
         <>
-          <form
-            className="lane"
-            onSubmit={() => {
-              return false;
-            }}
-          >
-            <div className="header-item">
-              <div className="input-container">
-                <label htmlFor="amount">
+          <form className="flex flex-col gap-5">
+            <div className="flex w-full flex-col gap-y-2">
+              <div className="flex w-full gap-3 rounded-full bg-[#202227] px-[6px] py-2 md:p-2 md:px-3">
+                <span className="flex w-[55%] items-center justify-center rounded-full bg-black px-0 py-2 font-[Sregular] text-white max-md:text-sm md:w-[10%] md:px-4 md:py-[6px]">
                   Amount ({chain?.nativeCurrency.symbol})
-                </label>
+                </span>
                 <input
                   type="text"
+                  className={`focus:cursor w-[80%] bg-transparent font-[Sregular] text-white focus:outline-none  ${
+                    amountError ? "error-input" : ""
+                  }`}
+                  placeholder="0.00"
                   value={amount}
                   autoComplete="off"
                   id="amount"
                   disabled={isLoading}
-                  style={{ textAlign: "left" }}
-                  className={amountError ? "error-input" : ""}
-                  placeholder="0.00"
                   onChange={handleAmountInput}
                 />
               </div>
-              <div className="send-footer">
+            </div>
+            <div className="flex max-md:flex-col max-md:gap-y-2 md:justify-between">
+              <div className="flex items-center gap-x-6 max-md:justify-center">
+                <h1 className="font-[Sregular] text-[24px] text-white md:text-[30px]">
+                  {Number(balance.formatted).toFixed(4)}{" "}
+                  {chain?.nativeCurrency.symbol}
+                </h1>
+                <h1 className="font-[Sregular] text-[24px] text-[#4F5054]">
+                  available
+                </h1>
+              </div>
+              <div className="max-md:flex max-md:justify-center">
                 <button
-                  className="hbutton control-wallet"
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[#38E5FF] py-2 font-[Sregular] text-[20px] font-bold text-black hover:bg-[#253038] hover:text-[#CAECF1] md:w-[20dvw]"
                   color="success"
                   disabled={!write || isLoading || amountError || ZkmlIDError}
                   onClick={(e) => {
@@ -316,29 +317,16 @@ export function Send(props: any) {
                     write?.();
                   }}
                 >
-                  <span>
-                    <FontAwesomeIcon icon={faArrowRight} />
-                    &nbsp;
-                    {isLoading
-                      ? "Sending..."
-                      : `Send ${chain?.nativeCurrency.symbol}`}
-                  </span>
+                  {isLoading
+                    ? "Sending..."
+                    : `Send ${chain?.nativeCurrency.symbol}`}
                 </button>
-
-                <input
-                  value={`${Number(balance.formatted).toFixed(4)} ${
-                    chain?.nativeCurrency.symbol
-                  }`}
-                  style={{ backgroundColor: "black" }}
-                  disabled
-                />
-                <span className="send-txt-label">Available:</span>
               </div>
             </div>
           </form>
           {theirID && ZkmlIDError && (
             <div className="lane">
-              <p className="message error">Invalid Zkml ID</p>
+              <p className="message error text-red-500">Invalid Zkml ID</p>
             </div>
           )}
           {isSuccess && !isError && !isPrepareError && (
