@@ -19,17 +19,13 @@ import { Send } from "../components/send";
 import { SendNew } from "../components/sendNew";
 import { Withdraw } from "../components/withdraw";
 import { TransactionPool } from "../components/tsx-pools";
+import WithdrawNew from "../components/withdrawNew";
 
 const Main = () => {
   const [isLoading, setIsLoading] = useState(false);
   const connected = false;
-  const [selectedButtonIndex, setSelectedButtonIndex] = useState<number | null>(
-    null
-  );
 
-  const handleButtonClick = (index: number) => {
-    setSelectedButtonIndex((prevIndex) => (prevIndex === index ? null : index));
-  };
+  
 
   const { chain } = useNetwork();
   const contractAddress = registryAddress[chain?.id || 100 || 10200];
@@ -159,8 +155,9 @@ const Main = () => {
                     </button>
                   </div>
                 </div>
-              )} */}
-              <Withdraw setIsLoading={setIsLoading} />
+              )}
+              <Withdraw setIsLoading={setIsLoading} /> */}
+              <WithdrawNew  setIsLoading={setIsLoading} connected={connected}  />
             </TabsContent>
             <TabsContent value="dataPool" className="min-h-[250px]">
               {/* <div className="flex flex-col items-center justify-center px-6 py-12">
