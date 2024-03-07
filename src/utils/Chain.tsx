@@ -17,5 +17,4 @@ export const XRPLDevnet = {
       etherscan: { name: 'XRPL', url: 'https://evm-sidechain.xrpl.org/' },
       default: { name: 'XRPL', url: 'https://evm-sidechain.xrpl.org' },
     },
-  
   } as const satisfies Chain

@@ -1,34 +1,35 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useToast } from '@chakra-ui/react';
-import { curve, ec as EC } from 'elliptic';
-import { BigNumber, ethers } from 'ethers';
-import { base58, getAddress, keccak256, parseEther } from 'ethers/lib/utils.js';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useToast } from "@chakra-ui/react";
+import { curve, ec as EC } from "elliptic";
+import { BigNumber, ethers } from "ethers";
+import { base58, getAddress, keccak256, parseEther } from "ethers/lib/utils.js";
 import {
+  useTransaction,
   useAccount,
   useBalance,
   useContractWrite,
   useNetwork,
   usePrepareContractWrite,
-  useWaitForTransaction
-} from 'wagmi';
+  useWaitForTransaction,
+} from "wagmi";
 
-import { ZkmlPayABI } from '../contracts/abi.json';
-import { registryAddress, explorer } from '../utils/constants';
-import { calculateCrc } from '../utils/crc16';
-import useDebounce from '../utils/debounce';
-import { Connect } from './connect';
-import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { supabase } from '../utils/constants';
+import initializeStreamr from "../utils/initiateStreamr";
+import { ZkmlPayABI } from "../contracts/abi.json";
+import { registryAddress, explorer } from "../utils/constants";
+import { calculateCrc } from "../utils/crc16";
+import useDebounce from "../utils/debounce";
+import { Connect } from "./connect";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { supabase } from "../utils/constants";
 
-import './panes.css';
+import "./panes.css";
 
 const zero = BigNumber.from(0);
 
 export function Send(props: any) {
-  
   const ec = useMemo(() => {
-    return new EC('secp256k1');
+    return new EC("secp256k1");
   }, []);
 
   const { chain } = useNetwork();
@@ -40,21 +41,21 @@ export function Send(props: any) {
     watch: true,
     cacheTime: 3_500,
   });
-  
-  const [xdcAddr, setxdcAddr]                   = useState<string>(ethers.constants.AddressZero);
-  const [sharedSecretByte, setSharedSecretByte] = useState<string>('0x00');
-  const [theirID, setTheirID]                   = useState<string>('');
-  const [ephPublic, setEphPublic]               = useState<curve.base.BasePoint>();
-  const [ZkmlIDError, setZkmlIDError]           = useState<boolean>(false);
-  const [amountError, setAmountError]           = useState<boolean>(false);
-  const [amount, setAmount]                     = useState<string>('0');
-  const [amountWei, setAmountWei]               = useState<BigNumber>(zero);
-  const [hash]                                  = useState<string>(window.location.hash);
-  const toast                                   = useToast();
+
+  const [xdcAddr, setxdcAddr] = useState<string>(ethers.constants.AddressZero);
+  const [sharedSecretByte, setSharedSecretByte] = useState<string>("0x00");
+  const [theirID, setTheirID] = useState<string>("");
+  const [ephPublic, setEphPublic] = useState<curve.base.BasePoint>();
+  const [ZkmlIDError, setZkmlIDError] = useState<boolean>(false);
+  const [amountError, setAmountError] = useState<boolean>(false);
+  const [amount, setAmount] = useState<string>("0");
+  const [amountWei, setAmountWei] = useState<BigNumber>(zero);
+  const [hash] = useState<string>(window.location.hash);
+  const toast = useToast();
 
   const debouncedAmount = useDebounce(amountWei, 500);
-  const debouncedAddr   = useDebounce(xdcAddr, 500);
-  
+  const debouncedAddr = useDebounce(xdcAddr, 500);
+
   const {
     isError: isPrepareError,
     error: prepareError,
@@ -62,11 +63,11 @@ export function Send(props: any) {
   } = usePrepareContractWrite({
     address: registryAddress[chain?.id || 0],
     abi: ZkmlPayABI,
-    functionName: 'publishAndSend',
+    functionName: "publishAndSend",
     args: [
-      '0x' + ephPublic?.getX().toString(16, 64),
-      '0x' + ephPublic?.getY().toString(16, 64),
-      '0x' + sharedSecretByte,
+      "0x" + ephPublic?.getX().toString(16, 64),
+      "0x" + ephPublic?.getY().toString(16, 64),
+      "0x" + sharedSecretByte,
       debouncedAddr,
     ],
     value: debouncedAmount.toBigInt(),
@@ -78,6 +79,46 @@ export function Send(props: any) {
     hash: data?.hash,
   });
 
+  const { data: transaction } = useTransaction({
+    hash: data?.hash,
+  });
+
+  const setStream = () => {
+    const {
+      hash: transactionHash,
+      from: fromAddress,
+      to: toAddress,
+      value: txnAmount,
+    } = transaction || {};
+
+    console.log(transactionHash);
+    console.log(fromAddress);
+    console.log(toAddress);
+    console.log(txnAmount);
+
+    const streamTransaction = {
+      transactionHash,
+      fromAddress,
+      toAddress,
+      amount: ethers.utils.formatEther(txnAmount!),
+    };
+
+    async function main() {
+      try {
+        const stream = await initializeStreamr();
+        console.log(stream);
+        await stream.publish(streamTransaction);
+
+        console.log("Message published successfully: ", streamTransaction);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+
+    main();
+    console.log("Data published successfully!");
+  };
+
   const handleIDInput = (ev: React.FormEvent<HTMLInputElement>) => {
     setTheirID(ev.currentTarget.value);
     setZkmlIDError(false);
@@ -85,16 +126,15 @@ export function Send(props: any) {
   };
 
   const handleAmountInput = (event: React.FormEvent<HTMLInputElement>) => {
-    console.log(event.currentTarget.value)
+    console.log(event.currentTarget.value);
     setAmount(event.currentTarget.value);
     setAmountError(false);
   };
 
-
   const generateNewEphKey = useCallback(() => {
     if (!theirID) return;
 
-    if (theirID.at(0) !== 'V') {
+    if (theirID.at(0) !== "V") {
       setZkmlIDError(true);
       return;
     }
@@ -104,7 +144,7 @@ export function Send(props: any) {
     try {
       decodedID = base58.decode(_theirID);
     } catch (e) {
-      console.log('Invalid base58 encoding');
+      console.log("Invalid base58 encoding");
       setZkmlIDError(true);
       return;
     }
@@ -114,18 +154,16 @@ export function Send(props: any) {
       return;
     }
 
-    
-
     const trueID = decodedID.subarray(0, 33);
     const crc = calculateCrc(trueID);
     if (!crc.every((x, idx) => x === decodedID[33 + idx])) {
-      console.log('CRC error: ' + crc + '; ' + decodedID);
+      console.log("CRC error: " + crc + "; " + decodedID);
       setZkmlIDError(true);
       return;
     }
 
     try {
-      const meta = ec.keyFromPublic(trueID, 'hex');
+      const meta = ec.keyFromPublic(trueID, "hex");
 
       // generate eph key
       const ephKey = ec.genKeyPair();
@@ -137,42 +175,40 @@ export function Send(props: any) {
       const pub = meta
         .getPublic()
         .add(hashed.getPublic())
-        .encode('array', false);
+        .encode("array", false);
 
       const addr = keccak256(pub.splice(1));
 
       setxdcAddr(
-        getAddress('0x' + addr.substring(addr.length - 40, addr.length))
+        getAddress("0x" + addr.substring(addr.length - 40, addr.length))
       );
 
-      setSharedSecretByte(ss.toArray()[0].toString(16).padStart(2, '0'));
+      setSharedSecretByte(ss.toArray()[0].toString(16).padStart(2, "0"));
 
       console.log(
-        `Current ephemeral pubkey: ${ephKey.getPublic().encode('hex', true)}`
+        `Current ephemeral pubkey: ${ephKey.getPublic().encode("hex", true)}`
       );
     } catch (e) {
       setZkmlIDError(true);
     }
   }, [theirID, ec]);
 
-  const saveData =  async () => {
-    const date = new Date(); 
+  const saveData = async () => {
+    const date = new Date();
     const isoDateString = date.toISOString();
 
-    await supabase
-      .from('zkml')
-      .upsert([
-        { 
-          zkmlid: theirID, 
-          type: 'send',
-          address: data?.hash,
-          amount:  amount,
-          createtime: isoDateString,
-          cryptotype: chain?.nativeCurrency.symbol,
-          explorerAddress: explorerAddress
-        },
-      ])
-  }
+    await supabase.from("zkml").upsert([
+      {
+        zkmlid: theirID,
+        type: "send",
+        address: data?.hash,
+        amount: amount,
+        createtime: isoDateString,
+        cryptotype: chain?.nativeCurrency.symbol,
+        explorerAddress: explorerAddress,
+      },
+    ]);
+  };
 
   useEffect(() => {
     if (!theirID) {
@@ -180,26 +216,26 @@ export function Send(props: any) {
       return;
     }
 
-    if (theirID.startsWith('https://zkml/#')) {
-      setTheirID(theirID.replace('https://zkml/#', ''));
+    if (theirID.startsWith("https://zkml/#")) {
+      setTheirID(theirID.replace("https://zkml/#", ""));
     } else {
       generateNewEphKey();
     }
   }, [theirID, generateNewEphKey]);
 
-  
   useEffect(() => {
     generateNewEphKey();
     if (isSuccess) {
       toast({
-        title: 'Success Transaction',
-        description: 'You can withdraw funds by use key',
-        status: 'success', // success, error, warning, info
+        title: "Success Transaction",
+        description: "You can withdraw funds by use key",
+        status: "success", // success, error, warning, info
         duration: 5000, // Duration in milliseconds
         isClosable: true, // Whether the toast is closable by user
-        position: "top-right"
+        position: "top-right",
       });
       saveData();
+      setStream();
     }
     setIsLoading(isLoading);
   }, [isSuccess, isLoading]);
@@ -208,24 +244,24 @@ export function Send(props: any) {
     if (isPrepareError) {
       toast({
         title: "Transaction Failed",
-        description: prepareError?.message.slice(0, 40) + '...',
-        status: 'error', // success, error, warning, info
+        description: prepareError?.message.slice(0, 40) + "...",
+        status: "error", // success, error, warning, info
         duration: 5000, // Duration in milliseconds
         isClosable: true, // Whether the toast is closable by user
-        position: "top-right"
+        position: "top-right",
       });
     }
     if (isError) {
       toast({
         title: "Transaction Failed",
-        description: error?.message.slice(0, 40) + '...',
-        status: 'error', // success, error, warning, info
+        description: error?.message.slice(0, 40) + "...",
+        status: "error", // success, error, warning, info
         duration: 5000, // Duration in milliseconds
         isClosable: true, // Whether the toast is closable by user
-        position: "top-right"
+        position: "top-right",
       });
     }
-  }, [isPrepareError, isError])
+  }, [isPrepareError, isError]);
 
   useEffect(() => {
     if (hash.length > 20) {
@@ -249,19 +285,22 @@ export function Send(props: any) {
   }, [amount, balance]);
 
   return (
-    <div style={{ paddingTop: '1rem' }}>
+    <div style={{ paddingTop: "1rem" }}>
       <p className="send-txt-content">
-        {chain?.nativeCurrency.symbol || 'Crypto'} will be sent to a secret blockchain account that will hold the {chain?.nativeCurrency.symbol || 'crypto'} temporarily.
-        The user who owns the ZKML ID will have control over the secret account.
+        {chain?.nativeCurrency.symbol || "Crypto"} will be sent to a secret
+        blockchain account that will hold the{" "}
+        {chain?.nativeCurrency.symbol || "crypto"} temporarily. The user who
+        owns the ZKML ID will have control over the secret account.
       </p>
       <form
         className="lane"
         onSubmit={() => {
           return false;
         }}
-      ><div className='header-item'>
+      >
+        <div className="header-item">
           <div className="input-container">
-            <label htmlFor="xcryptID">ZKML ID</label>
+            <label htmlFor="xcryptID" style={{fontFamily: "Questrial"}}>ZKML ID</label>
             <input
               type="text"
               id="xcryptID"
@@ -271,6 +310,7 @@ export function Send(props: any) {
               autoComplete="off"
               placeholder="Enter Receiver ZKML ID"
               onChange={handleIDInput}
+              style={{fontFamily: "Questrial"}}
             />
           </div>
         </div>
@@ -278,7 +318,7 @@ export function Send(props: any) {
 
       {!isConnected && (
         <>
-          <div className='connected_send'>
+          <div className="connected_send">
             <Connect />
           </div>
         </>
@@ -294,7 +334,7 @@ export function Send(props: any) {
           >
             <div className="header-item">
               <div className="input-container">
-                <label htmlFor="amount">
+                <label htmlFor="amount" style={{fontFamily: "Questrial"}}>
                   Amount ({chain?.nativeCurrency.symbol})
                 </label>
                 <input
@@ -303,38 +343,37 @@ export function Send(props: any) {
                   autoComplete="off"
                   id="amount"
                   disabled={isLoading}
-                  style={{ textAlign: 'left' }}
-                  className={amountError ? 'error-input' : ''}
+                  style={{ textAlign: "left", fontFamily: "Questrial" }}
+                  className={amountError ? "error-input" : ""}
                   placeholder="0.00"
                   onChange={handleAmountInput}
                 />
               </div>
-              <div className='send-footer'>
+              <div className="send-footer">
+                <p className="send-txt-label-crypto">
+                  {Number(balance.formatted).toFixed(4)}{" "}
+                  {chain?.nativeCurrency.symbol}{" "}
+                  <span className="send-txt-label">available</span>
+                </p>
+
                 <button
-                  className="hbutton control-wallet"
+                  className="hbutton hbutton-lnk send-button"
                   color="success"
                   disabled={!write || isLoading || amountError || ZkmlIDError}
                   onClick={(e) => {
                     e.preventDefault();
                     write?.();
                   }}
+                  style={{fontFamily: 'Questrial', color: "black"}}
                 >
                   <span>
                     <FontAwesomeIcon icon={faArrowRight} />
                     &nbsp;
                     {isLoading
-                      ? 'Sending...'
+                      ? "Sending..."
                       : `Send ${chain?.nativeCurrency.symbol}`}
                   </span>
                 </button>
-
-                <input
-                  value={`${Number(balance.formatted).toFixed(4)} ${chain?.nativeCurrency.symbol
-                    }`}
-                  style={{ backgroundColor: "black" }}
-                  disabled
-                />
-                <span className="send-txt-label">Available:</span>
               </div>
             </div>
           </form>
@@ -346,14 +385,15 @@ export function Send(props: any) {
           {isSuccess && !isError && !isPrepareError && (
             <div className="lane">
               <p className="message">
-                <strong style={{ color: '#38E5FF' }}>Successfully sent!</strong>&nbsp;
+                <strong style={{ color: "#38E5FF" }}>Successfully sent!</strong>
+                &nbsp;
                 <a
                   href={`https://${explorerAddress}/tx/${data?.hash}`}
                   className="link-text"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  View on {chain?.name.split(' ')[0]} Explorer{' '}
+                  View on {chain?.name.split(" ")[0]} Explorer{" "}
                   <FontAwesomeIcon
                     icon={faArrowRight}
                     transform={{ rotate: -45 }}

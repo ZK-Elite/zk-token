@@ -18,7 +18,7 @@ export const FileUploader = ({ preLoad, handleFile }: { preLoad: () => void, han
 
   return (
     <>
-      <button className="zkml-button hbutton-lnk" onClick={handleClick}>
+      <button className="zkml-button hbutton-lnk" onClick={handleClick} style={{backgroundColor: "#253038"}}>
         <span>
           Load key <FontAwesomeIcon icon={faUpload} /> 
         </span>
