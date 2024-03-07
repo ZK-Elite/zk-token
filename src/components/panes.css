@@ -30,11 +30,11 @@
 
   /* Auto layout */
 
+  font-family: "Questrial";
   display: flex;
   flex-direction: row;
   padding: 4px 8px;
-
-  width: 870px;
+  width: 100%;
   height: 48px;
   flex: none;
   order: 2;
@@ -56,13 +56,18 @@
 }
 .pane .withdraw-div {
   margin-top: 1rem;
-  display: flex;
-  flex-direction: row;
+  display: block;
 }
 
 .connected_send {
   margin-top: 1.5rem;
   margin-left: 1rem;
+}
+.usewallet {
+  width: 100%;
+  padding: 10px 20px;
+  text-align: center;
+  justify-content: center;
 }
 .withdraw_button {
   border-radius: 20px;
@@ -70,7 +75,10 @@
   padding: 0.6em 1em;
   background-color: #191b27;
   color: white;
-  margin-right: 1.5rem;
+  width: 100%;
+  margin: 5px 0px;
+  text-align: center;
+  justify-content: center;
 }
 .withdraw_button:hover {
   border-color: #38E5FF;
@@ -110,21 +118,27 @@
 }
 
 .hbutton.control-wallet:focus-within {
-  background-color: #191b27;
+  background-color: #38E5FF;
 }
 .hbutton.control-wallet:disabled {
-  background-color: #191b27;
+  background-color: #38E5FF;
 }
 .hbutton.control-wallet:hover {
-  background-color: #191b27;
+  background-color: #38E5FF;
 }
 
 .send-footer {
   margin-top: 1rem;
   display: flex;
-  flex-direction: row-reverse;
+  padding: 20px 0px;
 }
-
+.send-button {
+  padding: 10px 60px;
+  margin: 5px;
+  background-color: #38E5FF;
+  border-radius: 2rem;
+  margin-left: auto;
+}
 .pane label {
   font-family: 'Roboto Mono';
   font-style: normal;
@@ -153,12 +167,20 @@
   margin-left: 13px;
 }
 
+.pane .send-txt-label-crypto {
+  font-size: 1.5rem;
+  color: white;
+  margin-right: 0.2rem;
+  font-weight: bold;
+  padding: 10px 5px;
+}
 .pane .send-txt-label {
   font-size: 1rem;
+  font-weight: 100;
   color: white;
   margin-left: 1rem;
   margin-right: 0.2rem;
-  padding: 10px 5px;
+  padding: 15px 5px;
 }
 .pane .message {
   padding: 4px 8px;
@@ -221,8 +243,6 @@
   padding: 0px;
   gap: 32px;
 
-  width: 896px;
-
   margin-top: 1.25rem;
   /* Inside auto layout */
 
@@ -249,7 +269,9 @@
   order: 3;
   flex-grow: 0;
 }
-
+.pane .header-item {
+  width: 100%;
+}
 .pane a.link-text {
   border-bottom: 1px dashed;
   color: #38E5FF;
@@ -262,6 +284,7 @@
 .pane .send-txt-content {
   color: white;
   margin-top: 1rem;
+  font-size: 1.2rem;
 }
 .modal {
   display: none;
@@ -292,16 +315,6 @@
 }
 
 @media only screen and (max-width: 424px) {
-  .pane .lane {
-    width: 270px;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 1rem;
-  }
-
-  .pane .input-container {
-    width: 280px;
-  }
 
   .pane input {
     width: 70%;
@@ -340,19 +353,18 @@
   .connected_send {
     margin-left: 0.5rem;
   }
+  .pane .send-txt-label-crypto {
+    font-size: 1rem;
+    margin-right: 0.1rem;
+  }
+  .send-txt-label {
+    margin-left: 0.1rem;
+  }
+  .pane .send-txt-content {
+    font-size: 1rem;
+  }
 }
 @media only screen and (min-width: 425px) and (max-width: 767px) {
-  .pane .lane {
-    width: 300px;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 1rem;
-  }
-
-  .pane .input-container {
-    width: 320px;
-  }
-
   .pane input {
     width: 70%;
     padding: 10px 10px;
@@ -377,19 +389,17 @@
   .modal-window {
     height: 36px;
   }
+  .pane .send-txt-label-crypto {
+    font-size: 1rem;
+    margin-right: 0.1rem;
+  }
+  .send-txt-label {
+    margin-left: 0.1rem;
+  }
 }
 
 
 @media only screen and (min-width: 768px) and (max-width: 960px) {
-  .pane .lane {
-    width: 640px;
-    gap: 16px;
-    margin-top: 1rem;
-  }
-
-  .pane .input-container {
-    width: 600px;
-  }
 
   .pane .input-container.small {
     width: 260px;
@@ -403,14 +413,25 @@
   .pane .hbutton.hbutton-lnk:first-child {
     padding-left: 0;
   }
+
+  .pane .withdraw-div {
+    display: flex;
+  }
+  .pane .withdraw_button {
+    width: 200px;
+    margin-right: 2%;
+  }
 }
 
-@media only screen and (min-width: 960px) and (max-width: 1280px) {
+@media only screen and (min-width: 960px) {
   .zkml-bg {
     display: none;
   }
-
-  .zkml-body {
-    width: 960;
+  .pane .withdraw-div {
+    display: flex;
+  }
+  .pane .withdraw_button {
+    width: 200px;
+    margin-right: 2%;
   }
 }
