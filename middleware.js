@@ -10,7 +10,7 @@ const ratelimit = new Ratelimit({
 
 // Define which routes you want to rate limit
 export const config = {
-  matcher: '/assets/*',
+  matcher: '/:path*',
 }
 
 export default async function middleware(request) {
