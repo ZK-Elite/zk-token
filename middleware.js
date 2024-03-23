@@ -10,7 +10,7 @@ const ratelimit = new Ratelimit({
 
 // Define which routes you want to rate limit
 export const config = {
-  matcher: '/',
+  matcher: '/*',
 }
 
 export default async function middleware(request) {
@@ -22,5 +22,5 @@ export default async function middleware(request) {
 
   return success
     ? next()
-    : Response.redirect(new URL('/blocked.html', request.url))
+    : Response.redirect(new URL('/blocked', request.url))
 }
