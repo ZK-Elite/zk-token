@@ -7,12 +7,12 @@ import BlockedPage from './blocked'
 const PageRoutes = () => {
   return (
     <>
-      <BrowserRouter>
+      {/* <BrowserRouter> */}
         <Routes>
           <Route path='/' element={<Main/>} />
           <Route path='/blocked' element={<BlockedPage/>} />
         </Routes>
-      </BrowserRouter>
+      {/* </BrowserRouter> */}
     </>
   )
 }
