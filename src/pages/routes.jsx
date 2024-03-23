@@ -10,7 +10,7 @@ const PageRoutes = () => {
       {/* <BrowserRouter> */}
         <Routes>
           <Route path='/' element={<Main/>} />
-          <Route path='/blocked' element={<BlockedPage/>} />
+          <Route path='blocked' element={<BlockedPage/>} />
         </Routes>
       {/* </BrowserRouter> */}
     </>
