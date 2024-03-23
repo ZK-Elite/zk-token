@@ -1,0 +1,20 @@
+.blocked-page {
+    text-align: center;
+    margin-top: 50px;
+  }
+  
+  .blocked-page h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .blocked-page p {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .blocked-page code {
+    background-color: #f0f0f0;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
