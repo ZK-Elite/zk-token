@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './blocked.css';
 
 function BlockedPage() {
@@ -5,11 +6,9 @@ function BlockedPage() {
     <div className="blocked-page">
       <h1>ZKML Rate Limiting</h1>
       <p>
-        You are now rate limited after exceeding 5 requests in 10 seconds based on
-        your IP address. Please wait 10 seconds and you can return to the
-        <code>/</code> route.
+      Sorry, you've exceeded the maximum number of requests allowed at this time. Please try again later.
       </p>
-      <p>Too Many Requests</p>
+      <u><Link to={"/"}> Back Home </Link></u>
     </div>
   );
 }
